@@ -132,7 +132,7 @@ class ProductsListView(ListView):
 
     def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
-        context_data['category'] = get_object_or_404(Product.category, pk=self.kwargs.get('pk'))
+        context_data['category'] = get_object_or_404(ProductCategory, pk=self.kwargs.get('pk'))
         return context_data
 
     def get_queryset(self):
