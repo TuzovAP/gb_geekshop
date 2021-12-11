@@ -1,3 +1,4 @@
+import requests
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
@@ -5,7 +6,9 @@ from django.contrib import auth
 from django.urls import reverse
 from django.core.mail import send_mail
 from authapp.forms import ShopUserLoginForm, ShopUserRegisterForm, ShopUserEditForm, ShopUser
+from authapp.services import send_verify_email
 
+from authapp.forms import ShopUserProfileEditorForm
 
 
 def login(request):
@@ -51,14 +54,17 @@ def register(request):
 def edit(request):
     if request.method == 'POST':
        edit_form = ShopUserEditForm(request.POST, request.FILES, instance=request.user)
-       if edit_form.is_valid():
+       edit_profile_form = ShopUserProfileEditorForm(requests.POST, instance=request.user.shopuserprofile)
+       if edit_form.is_valid() and edit_profile_form.is_valid():
            edit_form.save()
            return HttpResponseRedirect(reverse('auth:edit'))
     else:
         edit_form = ShopUserEditForm(instance=request.user)
+        edit_profile_form = ShopUserProfileEditorForm(instance=request.user.shopuserprofile)
 
     context = {
-        'edit_form': edit_form
+        'edit_form': edit_form,
+        'edit_profile_form': edit_profile_form
     }
     return render(request, 'authapp/edit.html', context)
 
@@ -67,23 +73,6 @@ def verify(request, email, key):
     # user = get_object_or_404(ShopUser, email=email)
     if user:
         if user.activate_key == key and not user.is_active_key_expired():
-            user.is_active = True
-            user.activate_key = None
-            user.is_active_key_expired = None
-            user.save()
+            user.activate_user()
             auth.login(request, user)
     return render(request, 'authapp/register_result.html')
-
-
-def send_verify_email(user):
-    verify_link = reverse('auth:verify', args=[user.email, user.activate_key])
-    full_link = f'{settings.BASE_URL}{verify_link}'
-    message = f'Your activation url: {full_link}'
-
-    return send_mail(
-        'Account activation',
-        message,
-        settings.EMAIL_HOST_USER,
-        [user.email],
-        fail_silently=False
-    )
