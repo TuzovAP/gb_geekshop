@@ -1,8 +1,6 @@
 from django.db import models
 
 
-NULABLE = {'null': True, 'blank': True}
-
 class ProductCategory(models.Model):
     name = models.CharField(max_length=64, unique=True, verbose_name='название')
     description = models.TextField(verbose_name='описание')
@@ -13,8 +11,9 @@ class ProductCategory(models.Model):
 
     class Meta:
         verbose_name = 'категория'
-        verbose_name_plural = 'категория'
+        verbose_name_plural = 'категории'
         ordering = ('-id',)
+
 
 class Product(models.Model):
     category = models.ForeignKey(ProductCategory, on_delete=models.CASCADE, verbose_name='категория')
@@ -25,9 +24,6 @@ class Product(models.Model):
     price = models.DecimalField(decimal_places=2, max_digits=10, default=0, verbose_name='цена')
     quantity = models.PositiveSmallIntegerField(default=0, verbose_name='количество')
     is_active = models.BooleanField(default=True)
-    updated_at = models.DateTimeField(auto_now=True, **NULABLE)
-    created_at = models.DateTimeField(auto_now_add=True,  **NULABLE)
-
 
     def __str__(self):
         return f'{self.name} ({self.category.name})'
@@ -35,6 +31,6 @@ class Product(models.Model):
     def delete(self):
         if self.is_active:
             self.is_active = False
-        else: self.is_active = True
+        else:
+            self.is_active = True
         self.save()
-

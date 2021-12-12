@@ -16,7 +16,7 @@
                 </div>
                 <div class="category_actions">
                     <button>
-                        <a href={% url 'adminapp:products_list' object.pk %}>
+                        <a href={% url 'adminapp:product_list' object.pk %}>
                             товары категории
                         </a>
                     </button>
@@ -35,6 +35,7 @@
                     {{ object.description|title }}
                 </div>
             </div>
-        {% endfor%}
+        {% endfor %}
     </div>
 {% endblock %}
+

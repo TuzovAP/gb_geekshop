@@ -1,5 +1,5 @@
-{% load static %}
 <!DOCTYPE html>
+{% load static %}
 <html>
 <head>
     <meta charset="utf-8">
@@ -19,14 +19,15 @@
     {% endblock %}
 </head>
 <body>
-    <div class="basket_container">
-        <div class="h2 text-center head">
-            Ваша корзина, {% if user.first_name %}{{ user.first_name }}{% else %}Пользователь{% endif %}
-        </div>
-        {% block content %}
-
-        {% endblock %}
-        </div>
+<div class="basket_container">
+    <div class="h2 text-center head">
+        Ваша корзина, {% if user.first_name %}{{ user.first_name }}{% else %}Пользователь{% endif %}
     </div>
+
+    {% block content %}
+
+    {% endblock %}
+    </div>
+</div>
 </body>
 </html>
