@@ -1,28 +1,30 @@
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
+from django.contrib.auth.decorators import user_passes_test
+from django.utils.decorators import method_decorator
 from django.urls import reverse, reverse_lazy
+from adminapp.forms import ShopUserAdminEditForm, ProductEditForm
+from authapp.forms import ShopUserRegisterForm
 from authapp.models import ShopUser
 from mainapp.models import ProductCategory, Product
-from django.contrib.auth.decorators import user_passes_test
-from  django.utils.decorators import method_decorator
-from adminapp.forms import ShopUserAdminEditForm
-from authapp.forms import ShopUserRegisterForm
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
-from adminapp.forms import ProductEditForm
 
 
 @user_passes_test(lambda u: u.is_superuser)
 def user_create(request):
     if request.method == 'POST':
         user_form = ShopUserRegisterForm(request.POST, request.FILES)
+
         if user_form.is_valid():
             user_form.save()
             return HttpResponseRedirect(reverse('adminapp:user_list'))
     else:
-        user_form = ShopUserAdminEditForm()
+        user_form = ShopUserRegisterForm()
+
     context = {
         'form': user_form
     }
-    return render(request, 'adminapp/form.html', context)
+    return render(request, 'adminapp/user_form.html', context)
+
 
 # @user_passes_test(lambda u: u.is_superuser)
 # def users(request):
@@ -31,34 +33,41 @@ def user_create(request):
 #     }
 #     return render(request, 'adminapp/users.html', context)
 
-class UserListView(ListView):
-    model = ShopUser
-    template_name = 'adminapp/users.html'
+
+class AccessMixin:
 
     @method_decorator(user_passes_test(lambda u: u.is_superuser))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
 
+class UserListView(AccessMixin, ListView):
+    model = ShopUser
+    template_name = 'adminapp/users.html'
+
 
 @user_passes_test(lambda u: u.is_superuser)
-def users_update(request, pk):
+def user_update(request, pk):
     current_user = get_object_or_404(ShopUser, pk=pk)
     if request.method == 'POST':
         user_form = ShopUserAdminEditForm(request.POST, request.FILES, instance=current_user)
+
         if user_form.is_valid():
             user_form.save()
             return HttpResponseRedirect(reverse('adminapp:user_list'))
     else:
         user_form = ShopUserAdminEditForm(instance=current_user)
+
     context = {
         'form': user_form
     }
-    return render(request, 'adminapp/form.html', context)
+    return render(request, 'adminapp/user_form.html', context)
+
 
 @user_passes_test(lambda u: u.is_superuser)
-def users_delete(request, pk):
+def user_delete(request, pk):
     current_user = get_object_or_404(ShopUser, pk=pk)
+
     if request.method == 'POST':
         if current_user.is_active:
             current_user.is_active = False
@@ -66,10 +75,12 @@ def users_delete(request, pk):
             current_user.is_active = True
         current_user.save()
         return HttpResponseRedirect(reverse('adminapp:user_list'))
+
     context = {
         'object': current_user
     }
     return render(request, 'user_delete.html', context)
+
 
 @user_passes_test(lambda u: u.is_superuser)
 def category_create(request):
@@ -77,6 +88,7 @@ def category_create(request):
 
     }
     return render(request, '', context)
+
 
 @user_passes_test(lambda u: u.is_superuser)
 def categories(request):
@@ -88,6 +100,11 @@ def categories(request):
 
 @user_passes_test(lambda u: u.is_superuser)
 def category_update(request):
+    """
+    TODO: сделать здесь контроллер для того, чтобы
+    изменять категории, по принципу того, как мы
+    делали для пользователя
+    """
     context = {
 
     }
@@ -109,7 +126,8 @@ def category_delete(request):
 #     }
 #     return render(request, '', context)
 
-class ProductCreateView(CreateView):
+
+class ProductCreateView(AccessMixin, CreateView):
     model = Product
     template_name = 'adminapp/product_form.html'
     form_class = ProductEditForm
@@ -120,13 +138,13 @@ class ProductCreateView(CreateView):
 # @user_passes_test(lambda u: u.is_superuser)
 # def products(request, pk):
 #     context = {
-#         'category': get_object_or_404(Product.category, pk=pk),
+#         'category': get_object_or_404(ProductCategory, pk=pk),
 #         'object_list': Product.objects.filter(category__pk=pk).order_by('-is_active')
 #     }
 #     return render(request, 'adminapp/products.html', context)
 
 
-class ProductsListView(ListView):
+class ProductsListView(AccessMixin, ListView):
     model = Product
     template_name = 'adminapp/products.html'
 
@@ -146,7 +164,8 @@ class ProductsListView(ListView):
 #     }
 #     return render(request, '', context)
 
-class ProductUpdateView(UpdateView):
+
+class ProductUpdateView(AccessMixin, UpdateView):
     model = Product
     template_name = 'adminapp/product_form.html'
     form_class = ProductEditForm
@@ -156,6 +175,7 @@ class ProductUpdateView(UpdateView):
         return reverse('adminapp:product_list', args=[product_item.category_id])
 
 
+#
 # @user_passes_test(lambda u: u.is_superuser)
 # def product_delete(request):
 #     context = {
@@ -163,10 +183,10 @@ class ProductUpdateView(UpdateView):
 #     }
 #     return render(request, '', context)
 
-class ProductDeleteView(DeleteView):
+
+class ProductDeleteView(AccessMixin, DeleteView):
     model = Product
     template_name = 'adminapp/product_delete.html'
-    form_class = ProductEditForm
 
     def get_success_url(self):
         product_item = Product.objects.get(pk=self.kwargs['pk'])
@@ -188,11 +208,7 @@ class ProductDeleteView(DeleteView):
 #     }
 #     return render(request, '', context)
 
-class ProductDetailView(DetailView):
+
+class ProductDetailView(AccessMixin, DetailView):
     model = Product
     template_name = 'adminapp/product_detail.html'
-    form_class = ProductEditForm
-
-    def get_success_url(self):
-        product_item = Product.objects.get(pk=self.kwargs['pk'])
-        return reverse('adminapp:product_list', args=[product_item.category_id])

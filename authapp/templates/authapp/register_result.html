@@ -2,14 +2,14 @@
 {% load static %}
 
 {% block content %}
-    {% if user.is_autenticated %}
+    {% if user.is_authenticated %}
         <h1>Поздравляем!</h1>
-        <h2>Добро пожаловать в наш магазин</h2>
+        <h2>Добро пожаловать в наш магазин!</h2>
     {% else %}
         <h1>Ошибка</h1>
-        <h2>Что-то пошло не так</h2>
-        <p>братитесь в тех.поддержку</p>
+        <h2>Что-то пошло не так :( </h2>
+        <p>Обратитесь в поддержку по адресу support@gb.local</p>
     {% endif %}
     <hr>
-    <a href="{% 'index' %}">На главную</a>
+    <a href="{% url 'index' %}">На главную</a>
 {% endblock %}

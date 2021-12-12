@@ -4,15 +4,20 @@ from django import template
 
 register = template.Library()
 
+
 @register.filter(name='media_for_products')
 def media_for_products(img_path):
     if not img_path:
-        img_path = 'products/default.jpg'
+        img_path = 'products/default.jpeg'
+
     return f'{settings.MEDIA_URL}{img_path}'
 
 
 def media_for_users(img_path):
     if not img_path:
-        img_path = 'user_avatars/default.jpg'
+        img_path = 'users_avatars/default.jpeg'
+
     return f'{settings.MEDIA_URL}{img_path}'
+
+
 register.filter('media_for_users', media_for_users)

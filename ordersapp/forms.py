@@ -1,7 +1,10 @@
 from django import forms
-from ordesapp.models import Order, OrderItem
+
+from ordersapp.models import Order, OrderItem
+
 
 class OrderForm(forms.ModelForm):
+
     class Meta:
         model = Order
         exclude = ('user',)
@@ -12,8 +15,10 @@ class OrderForm(forms.ModelForm):
             field.widget.attrs['class'] = 'form-control'
             field.help_text = ''
 
+
 class OrderItemForm(forms.ModelForm):
-    price = forms.CharField(label='Цена', required=False)
+    price = forms.CharField(label='Цена (руб/шт)', required=False)
+
     class Meta:
         model = OrderItem
         exclude = ()
